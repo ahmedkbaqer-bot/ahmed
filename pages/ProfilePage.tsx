@@ -1,17 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { UserRole, Experience, Education, Sector, GOVERNORATES } from '../types';
 import { 
   User, Briefcase, GraduationCap, Mail, Phone, MapPin, 
   Globe, Plus, Trash2, Save, Edit3, X, CheckCircle2,
-  Building2, Camera, Link as LinkIcon, Sparkles, FileText, Upload, Download, Eye
+  Building2, Camera, Link as LinkIcon, Sparkles, FileText, Upload, Download, Eye, ImagePlus
 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
   const { user, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'view' | 'edit'>('view');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Local state for editing to avoid constant context updates
   const [editData, setEditData] = useState(user || {} as any);
@@ -36,14 +36,31 @@ export const ProfilePage: React.FC = () => {
     setTimeout(() => {
       setIsSaving(false);
       setIsEditing(false);
-      setActiveTab('view');
     }, 800);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Limit to 500KB for Firestore document limit safety (Base64 adds ~33% overhead)
+        if (file.size > 500 * 1024) {
+            alert('حجم الصورة كبير جداً. يرجى استخدام صورة أقل من 500 كيلوبايت.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setEditData({ ...editData, profileImage: reader.result as string });
+        };
+        reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerImageUpload = () => {
+      fileInputRef.current?.click();
+  };
+
+  const handleCvUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
       if (file.size > 500 * 1024) {
         alert('حجم الملف كبير جداً. يجب أن يكون أقل من 500 كيلوبايت لضمان الحفظ.');
         return;
@@ -119,21 +136,31 @@ export const ProfilePage: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden relative">
               <div className="p-6 md:p-8 pt-0">
                 <div className="flex justify-between items-start">
-                  <div className="relative -mt-16 mb-4">
-                    <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-full p-1.5 shadow-md">
+                  <div className="relative -mt-16 mb-4 group">
+                    <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-full p-1.5 shadow-md relative">
                         <div className="w-full h-full bg-gray-100 rounded-full flex items-center justify-center overflow-hidden border border-gray-200">
-                            {user.profileImage ? (
-                                <img src={user.profileImage} alt={user.name} className="w-full h-full object-cover" />
+                            {editData.profileImage ? (
+                                <img src={editData.profileImage} alt={editData.name} className="w-full h-full object-cover" />
                             ) : (
                                 <User className="w-16 h-16 text-gray-300" />
                             )}
                         </div>
+                        {isEditing && (
+                            <button 
+                                onClick={triggerImageUpload}
+                                className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            >
+                                <Camera className="w-8 h-8 text-white" />
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    onChange={handleImageUpload} 
+                                    accept="image/*" 
+                                    className="hidden" 
+                                />
+                            </button>
+                        )}
                     </div>
-                    {isEditing && (
-                      <button className="absolute bottom-2 right-2 p-2 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 transition-colors">
-                        <Camera className="w-4 h-4" />
-                      </button>
-                    )}
                   </div>
                   
                   {!isEditing ? (
@@ -356,13 +383,14 @@ export const ProfilePage: React.FC = () => {
 
           {/* Sidebar (Right/Left) */}
           <div className="space-y-6">
-             {/* CV / Resume Section - NEW */}
+             {/* CV / Resume Section - Enhanced for Upload in Profile */}
              {isSeeker && (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                     <h3 className="font-bold text-gray-900 mb-4 border-b pb-2 flex items-center gap-2">
                         <FileText className="w-5 h-5 text-gray-600" /> السيرة الذاتية (CV)
                     </h3>
                     
+                    {/* Always allow upload/update in Edit Mode */}
                     {isEditing ? (
                         <div className="space-y-4">
                              {editData.cvName ? (
@@ -374,10 +402,10 @@ export const ProfilePage: React.FC = () => {
                                      <button onClick={removeCv} className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                                  </div>
                              ) : (
-                                 <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors">
-                                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                                 <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors cursor-pointer group">
+                                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2 group-hover:text-primary-500 transition-colors" />
                                      <p className="text-xs font-bold text-gray-500 mb-2">اضغط لرفع ملف (PDF)</p>
-                                     <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                     <input type="file" accept=".pdf,.doc,.docx" onChange={handleCvUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
                                      <p className="text-[10px] text-gray-400">الحد الأقصى 500 كيلوبايت</p>
                                  </div>
                              )}
@@ -393,8 +421,10 @@ export const ProfilePage: React.FC = () => {
                                     <Download className="w-4 h-4" /> تحميل السيرة الذاتية
                                 </a>
                             ) : (
-                                <div className="text-center py-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                    <p className="text-xs text-gray-400 font-bold">لم يتم رفع سيرة ذاتية بعد</p>
+                                <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-200 flex flex-col items-center">
+                                    <FileText className="w-8 h-8 text-gray-300 mb-2" />
+                                    <p className="text-xs text-gray-400 font-bold mb-2">لم يتم رفع سيرة ذاتية بعد</p>
+                                    <button onClick={() => setIsEditing(true)} className="text-primary-600 text-xs font-bold hover:underline">اضغط لتعديل الملف وإضافة CV</button>
                                 </div>
                             )}
                         </div>
@@ -472,5 +502,6 @@ const calculateProfileStrength = (user: any) => {
     if (user.education?.length > 0) score += 20;
     if (user.skills?.length > 0) score += 10;
     if (user.cvUrl) score += 10;
+    if (user.profileImage) score += 10; // Bonus for image
     return Math.min(score, 100);
 };

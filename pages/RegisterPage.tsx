@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { User, GOVERNORATES, Sector, UserRole } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { UserPlus, MapPin, Building2, UserCircle, Sparkles, PenTool, CheckCircle2, Upload, FileText, X } from 'lucide-react';
+import { UserPlus, MapPin, Building2, UserCircle, Sparkles, PenTool, CheckCircle2 } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,36 +20,6 @@ export const RegisterPage: React.FC = () => {
     companyName: ''
   });
   
-  // CV Upload State
-  const [cvData, setCvData] = useState<{name: string, url: string} | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // 500KB limit for Firestore document safety (Demo mode)
-      if (file.size > 500 * 1024) {
-        alert('عذراً، حجم الملف يجب أن يكون أقل من 500 كيلوبايت في النسخة التجريبية.');
-        return;
-      }
-      
-      setIsUploading(true);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-         setCvData({
-           url: reader.result as string,
-           name: file.name
-         });
-         setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeCv = () => {
-      setCvData(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -64,8 +34,6 @@ export const RegisterPage: React.FC = () => {
       role: role,
       governorate: formData.governorate || undefined, 
       companyName: role === UserRole.RECRUITER ? formData.companyName : undefined,
-      cvUrl: cvData?.url,
-      cvName: cvData?.name
     };
 
     await register(newUser);
@@ -190,35 +158,12 @@ export const RegisterPage: React.FC = () => {
                 </select>
             </div>
 
-            {role === UserRole.SEEKER && (
-                <div className="pt-2">
-                    <label className="block text-sm font-bold text-gray-700 mb-2">السيرة الذاتية (CV)</label>
-                    {cvData ? (
-                        <div className="bg-green-50 p-3 rounded-xl border border-green-200 flex items-center justify-between">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                                <FileText className="w-5 h-5 text-green-600 shrink-0" />
-                                <span className="text-sm font-bold text-gray-700 truncate">{cvData.name}</span>
-                            </div>
-                            <button type="button" onClick={removeCv} className="text-red-500 hover:bg-red-50 p-1 rounded-lg"><X className="w-5 h-5" /></button>
-                        </div>
-                    ) : (
-                        <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:bg-gray-50 transition-colors group">
-                            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2 group-hover:text-primary-500 transition-colors" />
-                            <p className="text-xs font-bold text-gray-500 mb-1">اضغط لرفع ملف (PDF)</p>
-                            <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-                            <p className="text-[10px] text-gray-400">الحد الأقصى 500 كيلوبايت</p>
-                        </div>
-                    )}
-                </div>
-            )}
-
             <div>
               <button
                 type="submit"
-                disabled={isUploading}
-                className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-primary-600 hover:bg-primary-700 transition-all transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-lg font-bold text-white bg-primary-600 hover:bg-primary-700 transition-all transform hover:-translate-y-0.5"
               >
-                {isUploading ? 'جاري رفع الملف...' : t('auth.submit_register')}
+                {t('auth.submit_register')}
               </button>
             </div>
           </form>
