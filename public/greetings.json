@@ -1,0 +1,26 @@
+[
+  {
+    "hopi": "Loloma",
+    "english": "Hello / Welcome",
+    "audio": "/audio/loloma.mp3",
+    "image": "/images/hello.png"
+  },
+  {
+    "hopi": "Um waynuma?",
+    "english": "How are you?",
+    "audio": "/audio/um_waynuma.mp3",
+    "image": "/images/how_are_you.png"
+  },
+  {
+    "hopi": "Nu' oviy'o",
+    "english": "I am fine",
+    "audio": "/audio/nu_oviyo.mp3",
+    "image": "/images/i_am_fine.png"
+  },
+  {
+    "hopi": "Kurkw'a",
+    "english": "Thank you",
+    "audio": "/audio/kurkwa.mp3",
+    "image": "/images/thank_you.png"
+  }
+]
