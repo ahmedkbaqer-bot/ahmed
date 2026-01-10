@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Briefcase, PlusCircle, User, LogOut, Building2, ShieldCheck, Languages, PenTool, Sparkles, Info } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -8,6 +8,7 @@ import { UserRole } from '../types';
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
 
@@ -15,6 +16,11 @@ export const Navbar: React.FC = () => {
 
   const toggleLanguage = () => {
     setLanguage(language === 'ar' ? 'en' : 'ar');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   const getUserRoleIcon = (role: UserRole) => {
@@ -113,8 +119,8 @@ export const Navbar: React.FC = () => {
                         )}
                     </div>
 
-                    <button 
-                        onClick={logout}
+                    <button
+                        onClick={handleLogout}
                         className="p-2 text-gray-500 hover:bg-gray-100 rounded-full ml-1"
                         title={t('nav.logout')}
                     >

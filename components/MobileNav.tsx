@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, PlusCircle, LayoutGrid, User, Sparkles, PenTool } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, PlusCircle, LayoutGrid, User, Sparkles, PenTool, LogOut } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { UserRole } from '../types';
@@ -9,9 +9,15 @@ import { UserRole } from '../types';
 export const MobileNav: React.FC = () => {
   const { t } = useLanguage();
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 px-4 py-3 flex justify-around items-center shadow-[0_-4px_15px_rgba(0,0,0,0.06)] pb-safe rounded-t-2xl">
@@ -54,12 +60,19 @@ export const MobileNav: React.FC = () => {
           <span className="text-[10px] font-bold">{t('nav.login')}</span>
         </Link>
       ) : (
-        <Link to="/profile" className={`flex flex-col items-center gap-1 ${isActive('/profile') ? 'text-primary-600 scale-110' : 'text-gray-400'} transition-all`}>
-           <div className={`w-7 h-7 ${isActive('/profile') ? 'bg-primary-600 text-white' : 'bg-primary-100 text-primary-700'} rounded-full flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm ring-1 ring-primary-200`}>
-              {user.name.charAt(0)}
-           </div>
-           <span className="text-[10px] font-bold">{t('nav.profile')}</span>
-        </Link>
+        <>
+          <Link to="/profile" className={`flex flex-col items-center gap-1 ${isActive('/profile') ? 'text-primary-600 scale-110' : 'text-gray-400'} transition-all`}>
+             <div className={`w-7 h-7 ${isActive('/profile') ? 'bg-primary-600 text-white' : 'bg-primary-100 text-primary-700'} rounded-full flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm ring-1 ring-primary-200`}>
+                {user.name.charAt(0)}
+             </div>
+             <span className="text-[10px] font-bold">{t('nav.profile')}</span>
+          </Link>
+
+          <button onClick={handleLogout} className="flex flex-col items-center gap-1 text-gray-400 hover:text-red-500 transition-all">
+            <LogOut className="w-6 h-6" />
+            <span className="text-[10px] font-bold">{t('nav.logout')}</span>
+          </button>
+        </>
       )}
     </div>
   );
